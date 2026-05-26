@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PayFlow — Payments That Move With You</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:       #00E87A;
+  --green-mid:   #00C462;
+  --green-dark:  #007A3D;
+  --black:       #030A06;
+  --dark:        #080F0A;
+  --card:        #0D1A11;
+  --card2:       #111F15;
+  --border:      rgba(0,232,122,0.12);
+  --border2:     rgba(0,232,122,0.06);
+  --white:       #F0FFF6;
+  --muted:       #4A7A5A;
+  --text:        #B8D4BF;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:1000; opacity:.4;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:900;
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 20px 60px;
+  background: rgba(3,10,6,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border2);
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--white);
+  letter-spacing: -0.5px;
+}
+.logo span { color: var(--green); }
+
+.nav-links { display:flex; gap:36px; list-style:none; }
+.nav-links a {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--green); }
+
+.nav-cta {
+  background: var(--green);
+  color: var(--black);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+}
+.nav-cta:hover { background: var(--green-mid); transform: translateY(-1px); }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items:center;
+  padding: 140px 60px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position:absolute; inset:0; z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(0,232,122,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,196,98,0.06) 0%, transparent 50%),
+    var(--black);
+}
+
+.hero-grid {
+  position:absolute; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(0,232,122,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,232,122,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+}
+
+/* Animated orb */
+.orb {
+  position:absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,232,122,0.12) 0%, transparent 70%);
+  top: 50%; right: -100px;
+  transform: translateY(-50%);
+  animation: pulse 6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { transform: translateY(-50%) scale(1); opacity:.8; }
+  50% { transform: translateY(-50%) scale(1.1); opacity:1; }
+}
+
+.hero-content { position:relative; z-index:2; max-width: 680px; }
+
+.hero-badge {
+  display: inline-flex; align-items:center; gap:8px;
+  background: rgba(0,232,122,0.08);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: var(--green);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-bottom: 32px;
+  animation: fadeUp .6s ease both;
+}
+.badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: blink 1.5s ease infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.hero h1 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(52px, 7vw, 88px);
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -2px;
+  margin-bottom: 28px;
+  animation: fadeUp .6s .1s ease both;
+}
+.hero h1 em {
+  font-style: normal;
+  color: var(--green);
+  position: relative;
+}
+.hero h1 em::after {
+  content:'';
+  position:absolute; bottom:-4px; left:0; right:0; height:3px;
+  background: var(--green);
+  border-radius:2px;
+  opacity:.4;
+}
+
+.hero p {
+  font-size: 18px;
+  color: var(--text);
+  max-width: 520px;
+  margin-bottom: 44px;
+  animation: fadeUp .6s .2s ease both;
+}
+
+.hero-actions {
+  display:flex; gap:16px; align-items:center;
+  animation: fadeUp .6s .3s ease both;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: var(--black);
+  padding: 14px 32px;
+  border-radius: 100px;
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-primary:hover { background: var(--green-mid); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,232,122,0.25); }
+
+.btn-ghost {
+  color: var(--text);
+  padding: 14px 24px;
+  border-radius: 100px;
+  font-size: 15px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border);
+  transition: all .2s;
+  font-family: 'DM Sans', sans-serif;
+  display:flex; align-items:center; gap:8px;
+}
+.btn-ghost:hover { color: var(--white); border-color: rgba(0,232,122,0.3); }
+
+.hero-stats {
+  display:flex; gap:48px;
+  margin-top: 72px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border2);
+  animation: fadeUp .6s .4s ease both;
+}
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--white);
+}
+.stat-num span { color: var(--green); }
+.stat-label { font-size: 12px; color: var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+
+/* Floating card */
+.hero-card {
+  position:absolute; right: 8%; top:50%;
+  transform: translateY(-50%);
+  z-index:2;
+  animation: float 4s ease-in-out infinite, fadeUp .8s .5s ease both;
+}
+@keyframes float {
+  0%,100% { transform: translateY(-50%) translateY(0); }
+  50% { transform: translateY(-50%) translateY(-16px); }
+}
+
+.payment-card {
+  width: 340px;
+  background: linear-gradient(135deg, #0D1A11 0%, #142019 100%);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,232,122,0.05);
+}
+.card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; }
+.card-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:16px; color:var(--green); }
+.card-chip {
+  width:36px; height:28px;
+  background: linear-gradient(135deg, #00E87A22, #00E87A44);
+  border-radius:6px;
+  border:1px solid var(--border);
+}
+.card-number { font-family:'DM Sans',sans-serif; font-size:18px; letter-spacing:4px; color:var(--text); margin-bottom:20px; }
+.card-footer { display:flex; justify-content:space-between; align-items:flex-end; }
+.card-name { font-size:11px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); }
+.card-name strong { display:block; font-size:14px; color:var(--white); letter-spacing:1px; margin-top:2px; }
+.card-expiry { text-align:right; }
+.card-expiry .label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+.card-expiry .value { font-size:14px; color:var(--white); margin-top:2px; }
+
+/* Transaction pill */
+.txn-pill {
+  position:absolute; bottom:-24px; left:50%; transform:translateX(-50%);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 12px 20px;
+  display:flex; align-items:center; gap:12px;
+  white-space:nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.txn-icon {
+  width:32px; height:32px;
+  background: rgba(0,232,122,0.12);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px;
+}
+.txn-info .txn-name { font-size:12px; font-weight:500; color:var(--white); }
+.txn-info .txn-time { font-size:10px; color:var(--muted); }
+.txn-amount { font-family:'Syne',sans-serif; font-weight:700; color:var(--green); font-size:14px; }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ─── LOGOS / TRUST ─── */
+.trust {
+  padding: 40px 60px;
+  border-top: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+}
+.trust-inner {
+  display:flex; align-items:center; gap:48px;
+  overflow:hidden;
+}
+.trust-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:2px; white-space:nowrap; }
+.trust-logos { display:flex; gap:48px; align-items:center; }
+.trust-logo { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--muted); opacity:.5; }
+
+/* ─── FEATURES ─── */
+.section { padding: 100px 60px; }
+.section-label {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:11px; color:var(--green); text-transform:uppercase; letter-spacing:2px;
+  margin-bottom:16px;
+}
+.section-label::before { content:''; width:20px; height:1px; background:var(--green); }
+
+.section h2 {
+  font-family:'Clash Display',sans-serif;
+  font-size: clamp(36px, 4vw, 52px);
+  font-weight:600;
+  line-height:1.1;
+  letter-spacing:-1px;
+  margin-bottom:16px;
+}
+.section h2 span { color:var(--green); }
+
+.section-sub { font-size:17px; color:var(--text); max-width:520px; margin-bottom:64px; }
+
+.features-grid {
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:20px;
+}
+
+.feature-card {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius:20px;
+  padding:32px;
+  transition: all .3s;
+  position:relative;
+  overflow:hidden;
+}
+.feature-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  opacity:0;
+  transition: opacity .3s;
+}
+.feature-card:hover { border-color:var(--border); transform:translateY(-4px); box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+.feature-card:hover::before { opacity:1; }
+
+.feature-icon {
+  width:48px; height:48px;
+  background: rgba(0,232,122,0.08);
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+  margin-bottom:20px;
+  border:1px solid var(--border);
+}
+.feature-card h3 { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:10px; }
+.feature-card p { font-size:14px; color:var(--text); line-height:1.7; }
+
+/* ─── SECURITY ─── */
+.security { padding: 100px 60px; background: var(--dark); }
+
+.security-inner {
+  display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center;
+}
+
+.security-visual {
+  position:relative;
+}
+
+.security-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius:20px;
+  padding:32px;
+}
+.security-box h4 { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--green); margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; }
+
+.iam-item {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid var(--border2);
+}
+.iam-item:last-child { border:none; }
+.iam-dot { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; }
+.iam-name { font-size:13px; font-weight:500; flex:1; }
+.iam-tag {
+  font-size:10px; padding:3px 10px; border-radius:100px;
+  font-family:'DM Sans',sans-serif;
+}
+.tag-green { background:rgba(0,232,122,0.1); color:var(--green); border:1px solid var(--border); }
+.tag-yellow { background:rgba(255,200,0,0.1); color:#FFC800; border:1px solid rgba(255,200,0,0.2); }
+.tag-blue { background:rgba(0,150,255,0.1); color:#0096FF; border:1px solid rgba(0,150,255,0.2); }
+
+.security-badge {
+  position:absolute; bottom:-20px; right:-20px;
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px 20px;
+  display:flex; align-items:center; gap:12px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.4);
+}
+.shield-icon { font-size:28px; }
+.badge-text .title { font-size:13px; font-weight:600; }
+.badge-text .sub { font-size:11px; color:var(--muted); }
+
+/* ─── HOW IT WORKS ─── */
+.how { padding:100px 60px; }
+.steps { display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative; margin-top:64px; }
+.steps::before {
+  content:'';
+  position:absolute; top:36px; left:12%; right:12%; height:1px;
+  background: linear-gradient(90deg, transparent, var(--border), var(--green), var(--border), transparent);
+}
+
+.step { text-align:center; padding:0 20px; }
+.step-num {
+  width:72px; height:72px;
+  border-radius:50%;
+  background: var(--card);
+  border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Clash Display',sans-serif;
+  font-size:24px;
+  font-weight:700;
+  color:var(--green);
+  margin:0 auto 24px;
+  position:relative; z-index:2;
+}
+.step h4 { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; margin-bottom:10px; }
+.step p { font-size:13px; color:var(--text); }
+
+/* ─── PRICING ─── */
+.pricing { padding:100px 60px; background:var(--dark); }
+.pricing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:64px; }
+
+.pricing-card {
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:36px;
+  position:relative;
+  transition: all .3s;
+}
+.pricing-card.popular {
+  border-color:var(--green);
+  background: linear-gradient(160deg, #0D1F13, #0A1A0E);
+}
+.popular-badge {
+  position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+  background:var(--green);
+  color:var(--black);
+  font-size:11px; font-weight:700;
+  padding:4px 16px; border-radius:100px;
+  text-transform:uppercase; letter-spacing:1px;
+}
+.plan-name { font-size:12px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:12px; }
+.plan-price {
+  font-family:'Clash Display',sans-serif;
+  font-size:48px; font-weight:700;
+  letter-spacing:-2px;
+  margin-bottom:4px;
+}
+.plan-price sup { font-size:20px; vertical-align:super; }
+.plan-price sub { font-size:14px; color:var(--muted); }
+.plan-desc { font-size:13px; color:var(--text); margin-bottom:28px; }
+.plan-features { list-style:none; margin-bottom:32px; }
+.plan-features li {
+  display:flex; align-items:center; gap:10px;
+  font-size:14px; color:var(--text);
+  padding:8px 0;
+  border-bottom:1px solid var(--border2);
+}
+.plan-features li:last-child { border:none; }
+.plan-features li::before { content:'✓'; color:var(--green); font-weight:700; flex-shrink:0; }
+
+.btn-plan {
+  width:100%; padding:13px;
+  border-radius:100px;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px; font-weight:500;
+  cursor:pointer; transition:all .2s;
+  border: 1px solid var(--border);
+  background:transparent;
+  color:var(--white);
+}
+.btn-plan:hover { border-color:var(--green); color:var(--green); }
+.btn-plan.primary { background:var(--green); color:var(--black); border:none; }
+.btn-plan.primary:hover { background:var(--green-mid); box-shadow:0 8px 24px rgba(0,232,122,0.3); }
+
+/* ─── CTA ─── */
+.cta-section {
+  padding:100px 60px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.cta-bg {
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(0,232,122,0.06) 0%, transparent 70%);
+}
+.cta-section h2 {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(40px,5vw,64px);
+  font-weight:700;
+  letter-spacing:-2px;
+  margin-bottom:20px;
+  position:relative;
+}
+.cta-section h2 span { color:var(--green); }
+.cta-section p { font-size:17px; color:var(--text); margin-bottom:40px; position:relative; }
+.cta-actions { display:flex; gap:16px; justify-content:center; position:relative; }
+
+/* ─── FOOTER ─── */
+footer {
+  padding:60px;
+  border-top:1px solid var(--border2);
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:60px;
+}
+.footer-brand .logo { font-size:20px; margin-bottom:16px; display:block; }
+.footer-brand p { font-size:13px; color:var(--muted); max-width:240px; line-height:1.8; }
+.footer-col h5 { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; }
+.footer-col a {
+  display:block; font-size:13px; color:var(--muted);
+  text-decoration:none; margin-bottom:12px;
+  transition:color .2s;
+}
+.footer-col a:hover { color:var(--green); }
+
+.footer-bottom {
+  padding:24px 60px;
+  border-top:1px solid var(--border2);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.footer-bottom p { font-size:12px; color:var(--muted); }
+.footer-bottom span { color:var(--green); }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:var(--black); }
+::-webkit-scrollbar-thumb { background:var(--green-dark); border-radius:2px; }
+
+/* ─── ANIMATIONS ─── */
+.reveal {
+  opacity:0;
+  transform:translateY(30px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.reveal.visible { opacity:1; transform:none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="logo">Pay<span>Flow</span></span>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#security">Security</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <button class="nav-cta">Get Started</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="orb"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Trusted by 50,000+ businesses worldwide
+    </div>
+    <h1>Payments That<br><em>Move</em> With You</h1>
+    <p>PayFlow is the secure digital payments platform built for modern businesses. Lightning-fast transactions, enterprise-grade security, zero compromise.</p>
+    <div class="hero-actions">
+      <button class="btn-primary">Start for free →</button>
+      <button class="btn-ghost">▶ Watch demo</button>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">$2.4<span>B+</span></div>
+        <div class="stat-label">Processed monthly</div>
+      </div>
+      <div>
+        <div class="stat-num">99.<span>99%</span></div>
+        <div class="stat-label">Uptime SLA</div>
+      </div>
+      <div>
+        <div class="stat-num">180<span>+</span></div>
+        <div class="stat-label">Countries</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-card">
+    <div class="payment-card">
+      <div class="card-header">
+        <span class="card-logo">PayFlow</span>
+        <div class="card-chip"></div>
+      </div>
+      <div class="card-number">4247 •••• •••• 1590</div>
+      <div class="card-footer">
+        <div class="card-name">
+          <span class="label">Card Holder</span>
+          <strong>PAYFLOW CORP</strong>
+        </div>
+        <div class="card-expiry">
+          <div class="label">Expires</div>
+          <div class="value">05/29</div>
+        </div>
+      </div>
+    </div>
+    <div class="txn-pill">
+      <div class="txn-icon">💸</div>
+      <div class="txn-info">
+        <div class="txn-name">Payment received</div>
+        <div class="txn-time">Just now · Singapore</div>
+      </div>
+      <div class="txn-amount">+$4,280</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust">
+  <div class="trust-inner">
+    <span class="trust-label">Trusted by</span>
+    <div class="trust-logos">
+      <span class="trust-logo">STRIPE</span>
+      <span class="trust-logo">VISA</span>
+      <span class="trust-logo">MASTERCARD</span>
+      <span class="trust-logo">AWS</span>
+      <span class="trust-logo">SWIFT</span>
+      <span class="trust-logo">HSBC</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="reveal">
+    <div class="section-label">Features</div>
+    <h2>Everything you need to<br><span>move money</span> smarter</h2>
+    <p class="section-sub">Built from the ground up for speed, security, and scale. PayFlow gives your business the tools to grow without limits.</p>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Instant Settlements</h3>
+      <p>Funds hit your account in real-time — no waiting, no delays. Process thousands of transactions per second with zero downtime.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌏</div>
+      <h3>Global Payments</h3>
+      <p>Accept and send payments in 135+ currencies across 180 countries. Automatic FX conversion at interbank rates.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <h3>Bank-Grade Security</h3>
+      <p>256-bit encryption, MFA enforcement, role-based access control, and real-time fraud detection. Your money, protected.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Smart Analytics</h3>
+      <p>Real-time dashboards and AI-powered insights. Understand your cash flow, spot trends, and make faster decisions.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>API-First Design</h3>
+      <p>RESTful APIs with comprehensive documentation. Integrate PayFlow into your product in under an hour.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Compliance Built-in</h3>
+      <p>PCI-DSS Level 1, SOC 2 Type II, and MAS-regulated. Full audit trails with CloudTrail integration.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="security" id="security">
+  <div class="security-inner">
+    <div class="reveal">
+      <div class="section-label">Security</div>
+      <h2>Zero trust.<br><span>Maximum</span> protection.</h2>
+      <p style="color:var(--text);font-size:16px;margin:20px 0 32px;">PayFlow is built on a least-privilege security model. Every user, every service, every role gets exactly the access they need — and nothing more.</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:16px;">
+        <li style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="color:var(--green);font-size:18px;margin-top:2px;">✓</span>
+          <div>
+            <strong style="display:block;margin-bottom:4px;">IAM-powered Access Control</strong>
+            <span style="font-size:14px;color:var(--text);">Role-based permissions with MFA enforcement across all user accounts</span>
+          </div>
+        </li>
+        <li style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="color:var(--green);font-size:18px;margin-top:2px;">✓</span>
+          <div>
+            <strong style="display:block;margin-bottom:4px;">Full Audit Trail</strong>
+            <span style="font-size:14px;color:var(--text);">Every API call logged via AWS CloudTrail — complete visibility, always</span>
+          </div>
+        </li>
+        <li style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="color:var(--green);font-size:18px;margin-top:2px;">✓</span>
+          <div>
+            <strong style="display:block;margin-bottom:4px;">Continuous Threat Detection</strong>
+            <span style="font-size:14px;color:var(--text);">IAM Access Analyzer monitors for external exposure 24/7</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="security-visual reveal">
+      <div class="security-box">
+        <h4>🔒 IAM Access Control</h4>
+        <div class="iam-item">
+          <div class="iam-dot"></div>
+          <span class="iam-name">dev-team</span>
+          <span class="iam-tag tag-green">EC2 + S3</span>
+        </div>
+        <div class="iam-item">
+          <div class="iam-dot" style="background:#FFC800"></div>
+          <span class="iam-name">finance-team</span>
+          <span class="iam-tag tag-yellow">Billing Read</span>
+        </div>
+        <div class="iam-item">
+          <div class="iam-dot" style="background:#0096FF"></div>
+          <span class="iam-name">devops-team</span>
+          <span class="iam-tag tag-blue">Infra Access</span>
+        </div>
+        <div class="iam-item">
+          <div class="iam-dot" style="background:#f87171"></div>
+          <span class="iam-name">all-users</span>
+          <span class="iam-tag" style="background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2)">MFA Required</span>
+        </div>
+        <div style="margin-top:20px;padding:12px;background:rgba(0,232,122,0.05);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">CloudTrail Status</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:blink 1.5s infinite;"></span>
+            <span style="font-size:13px;font-weight:500;">payflow-audit-trail · Logging</span>
+          </div>
+        </div>
+      </div>
+      <div class="security-badge">
+        <span class="shield-icon">🛡️</span>
+        <div class="badge-text">
+          <div class="title">0 Security Findings</div>
+          <div class="sub">Last scan: just now</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="reveal" style="text-align:center;">
+    <div class="section-label" style="justify-content:center;">How it works</div>
+    <h2>Up and running in <span>4 steps</span></h2>
+    <p class="section-sub" style="margin:16px auto 0;text-align:center;">No complex integrations. No long onboarding. Just payments — fast.</p>
+  </div>
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h4>Create Account</h4>
+      <p>Sign up in 2 minutes. Verify your business and get your API keys instantly.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h4>Integrate API</h4>
+      <p>Drop our SDK into your codebase. Full documentation with live examples.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h4>Set Up Teams</h4>
+      <p>Add your team with role-based access. MFA enforced from day one.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <h4>Start Processing</h4>
+      <p>Go live and process your first payment. Real-time dashboard from minute one.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="reveal" style="text-align:center;">
+    <div class="section-label" style="justify-content:center;">Pricing</div>
+    <h2>Simple, <span>transparent</span> pricing</h2>
+    <p class="section-sub" style="text-align:center;margin:16px auto 0;">No hidden fees. No surprises. Scale as you grow.</p>
+  </div>
+  <div class="pricing-grid reveal">
+    <div class="pricing-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price"><sup>$</sup>0<sub>/mo</sub></div>
+      <div class="plan-desc">Perfect for early-stage startups getting their first payments live.</div>
+      <ul class="plan-features">
+        <li>Up to $10,000/month volume</li>
+        <li>2.9% + $0.30 per transaction</li>
+        <li>Basic IAM access control</li>
+        <li>Email support</li>
+        <li>Standard API access</li>
+      </ul>
+      <button class="btn-plan">Get started free</button>
+    </div>
+    <div class="pricing-card popular">
+      <div class="popular-badge">Most Popular</div>
+      <div class="plan-name">Growth</div>
+      <div class="plan-price"><sup>$</sup>99<sub>/mo</sub></div>
+      <div class="plan-desc">For scaling businesses that need more volume and advanced security.</div>
+      <ul class="plan-features">
+        <li>Up to $500,000/month volume</li>
+        <li>2.4% + $0.25 per transaction</li>
+        <li>Full IAM + MFA enforcement</li>
+        <li>CloudTrail audit logging</li>
+        <li>Priority 24/7 support</li>
+        <li>Advanced analytics</li>
+      </ul>
+      <button class="btn-plan primary">Start free trial</button>
+    </div>
+    <div class="pricing-card">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price" style="font-size:36px;">Custom</div>
+      <div class="plan-desc">For large businesses with high volume and compliance requirements.</div>
+      <ul class="plan-features">
+        <li>Unlimited volume</li>
+        <li>Custom transaction rates</li>
+        <li>Dedicated security team</li>
+        <li>SLA guarantees</li>
+        <li>MAS compliance support</li>
+        <li>Dedicated account manager</li>
+      </ul>
+      <button class="btn-plan">Contact sales</button>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-bg"></div>
+  <h2 class="reveal">Ready to move<br><span>money smarter?</span></h2>
+  <p class="reveal">Join 50,000+ businesses already using PayFlow. No credit card required.</p>
+  <div class="cta-actions reveal">
+    <button class="btn-primary">Start for free →</button>
+    <button class="btn-ghost">Talk to sales</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <span class="logo">Pay<span>Flow</span></span>
+    <p>The secure digital payments platform for modern businesses. Built on AWS. Secured by design.</p>
+  </div>
+  <div class="footer-col">
+    <h5>Product</h5>
+    <a href="#">Features</a>
+    <a href="#">Security</a>
+    <a href="#">Pricing</a>
+    <a href="#">API Docs</a>
+  </div>
+  <div class="footer-col">
+    <h5>Company</h5>
+    <a href="#">About</a>
+    <a href="#">Blog</a>
+    <a href="#">Careers</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-col">
+    <h5>Legal</h5>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Compliance</a>
+    <a href="#">Security</a>
+  </div>
+</footer>
+<div class="footer-bottom">
+  <p>© 2026 <span>PayFlow</span>. All rights reserved. Hosted on AWS S3 + CloudFront.</p>
+  <p>Built by <span>Drishya Raj</span> · payflow.cloud</p>
+</div>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Animated counter
+function animateCounter(el, target, suffix='') {
+  let start = 0;
+  const duration = 2000;
+  const step = target / (duration / 16);
+  const timer = setInterval(() => {
+    start += step;
+    if (start >= target) { start = target; clearInterval(timer); }
+    el.textContent = Math.floor(start).toLocaleString() + suffix;
+  }, 16);
+}
+</script>
+</body>
+</html>
